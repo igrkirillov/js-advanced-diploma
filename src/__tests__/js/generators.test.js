@@ -10,7 +10,11 @@ describe('generators module', () => {
   test ('characterGenerator top-left', () => {
     const playerTypes = [Bowman, Swordsman, Magician];
     const maxLevel = 2;
-    expect(characterGenerator(playerTypes, maxLevel).next().value).toAssertOneOfAndLevel(playerTypes, maxLevel);
+    const playerGenerator = characterGenerator(playerTypes, maxLevel);
+    expect(playerGenerator.next().value).toAssertOneOfAndLevel(playerTypes, maxLevel);
+    expect(playerGenerator.next().value).toAssertOneOfAndLevel(playerTypes, maxLevel);
+    expect(playerGenerator.next().value).toAssertOneOfAndLevel(playerTypes, maxLevel);
+    expect(playerGenerator.next().value).toAssertOneOfAndLevel(playerTypes, maxLevel);
   });
 });
 
