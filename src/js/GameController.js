@@ -7,9 +7,10 @@ import Swordsman from "./characters/Swordsman.js";
 import Magician from "./characters/Magician.js";
 import Daemon from "./characters/Daemon.js";
 import PositionedCharacter from "./PositionedCharacter.js";
-import {isCharacterOneOfType, tooltip} from "./utils.js";
+import {canStep, isCharacterOneOfType, tooltip} from "./utils.js";
 import GameState from "./GameState.js";
 import GamePlay from "./GamePlay.js";
+import cursors from "./cursors.js";
 
 export default class GameController {
   constructor(gamePlay, stateService) {
@@ -69,13 +70,13 @@ export default class GameController {
   onCellClick(index) {
     const character = this.findCharacter(index);
     if (character && isCharacterOneOfType(character, this.player1Types)) {
-      if (this.gameState.selectedPosition) {
-        this.gamePlay.deselectCell(this.gameState.selectedPosition)
+      if (this.gameState.selectedPositionedCharacter) {
+        this.gamePlay.deselectCell(this.gameState.selectedPositionedCharacter.position)
       }
       this.gamePlay.selectCell(index);
-      this.gameState.selectedPosition = index;
+      this.gameState.selectedPositionedCharacter = new PositionedCharacter(character, index);
     } else {
-      GamePlay.showError("Здесь нет своего героя!");
+      GamePlay.showError("Здесь нет своего персонажа!");
     }
   }
 
@@ -85,6 +86,7 @@ export default class GameController {
       const message = tooltip`${character.level} ${character.attack} ${character.defence} ${character.health}`;
       this.gamePlay.showCellTooltip(message, index);
     }
+    this.updateCursor(index);
   }
 
   onCellLeave(index) {
@@ -92,6 +94,41 @@ export default class GameController {
     if (this.findCharacter(index)) {
       this.gamePlay.hideCellTooltip(index);
     }
+    this.updateCursor(index);
+  }
+
+  updateCursor(index) {
+    if (this.gameState.selectedPositionedCharacter) {
+      this.updateCursorInSelectedCharacterState(index, this.gameState.selectedPositionedCharacter);
+    } else {
+      this.updateCursorInNotSelectedCharacterState(index);
+    }
+  }
+
+  updateCursorInSelectedCharacterState(index, selectedPositionedCharacter) {
+    const character = this.findCharacter(index);
+    if (character) {
+      if (isCharacterOneOfType(character, this.player1Types)) {
+        // если персонаж свой
+        this.gamePlay.setCursor(cursors.pointer);
+      } else if (canStep(index, selectedPositionedCharacter, character)){
+        // если персонаж противника и его можно атаковать
+        this.gamePlay.setCursor(cursors.crosshair);
+      } else {
+        // если персонаж противника и его нельзя атаковать
+        this.gamePlay.setCursor(cursors.notallowed);
+      }
+    } else {
+      if (canStep(index, selectedPositionedCharacter)) {
+        this.gamePlay.setCursor(cursors.pointer);
+      } else {
+        this.gamePlay.setCursor(cursors.notallowed);
+      }
+    }
+  }
+
+  updateCursorInNotSelectedCharacterState(index) {
+
   }
 
   findCharacter(index) {

@@ -65,3 +65,23 @@ export function tooltip(strings, level, attack, defence, health) {
 export function isCharacterOneOfType(character, types) {
   return !!types.find(type => character instanceof type);
 }
+
+export function canStep(index, selectedPositionedCharacter) {
+  const selectedPos = indexToXY(index);
+  const opponentPos = indexToXY(selectedPositionedCharacter.position);
+  if (selectedPos.x === opponentPos.x) {
+    return Math.abs(selectedPos.y - opponentPos.y) <= selectedPositionedCharacter.character.stepDistance;
+  } else if (selectedPos.y === opponentPos.y) {
+    return Math.abs(selectedPos.x - opponentPos.x) <= selectedPositionedCharacter.character.stepDistance;
+  } else if (Math.abs(selectedPos.x - opponentPos.x) === Math.abs(selectedPos.y - opponentPos.y)) {
+    return Math.abs(selectedPos.x - opponentPos.x) <= selectedPositionedCharacter.character.stepDistance;
+  } else {
+    return false;
+  }
+}
+
+export function indexToXY(index) {
+  const y = Math.ceil(index / 8);
+  const x = index - 8 * y;
+  return {x: x, y: y};
+}
