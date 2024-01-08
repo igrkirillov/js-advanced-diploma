@@ -5,7 +5,8 @@ describe('Bowman module', () => {
     expect(new Bowman(1)).toMatchObject({
       level: 1,
       attack: 25,
-      defence: 25
+      defence: 25,
+      stepDistance: 4
     });
   });
 });

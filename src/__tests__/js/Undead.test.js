@@ -5,7 +5,8 @@ describe('Undead module', () => {
     expect(new Undead(1)).toMatchObject({
       level: 1,
       attack: 40,
-      defence: 10
+      defence: 10,
+      stepDistance: 4
     });
   });
 });

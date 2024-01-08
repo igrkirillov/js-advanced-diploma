@@ -5,7 +5,8 @@ describe('Magician module', () => {
     expect(new Magician(1)).toMatchObject({
       level: 1,
       attack: 10,
-      defence: 40
+      defence: 40,
+      stepDistance: 1
     });
   });
 });

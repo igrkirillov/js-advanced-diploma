@@ -81,7 +81,7 @@ export function canStep(index, selectedPositionedCharacter) {
 }
 
 export function indexToXY(index) {
-  const y = Math.ceil(index / 8);
+  const y = Math.floor(index / 8);
   const x = index - 8 * y;
   return {x: x, y: y};
 }

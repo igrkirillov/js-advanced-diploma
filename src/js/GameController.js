@@ -94,28 +94,34 @@ export default class GameController {
     if (this.findCharacter(index)) {
       this.gamePlay.hideCellTooltip(index);
     }
+    if (this.gameState.underAttackPositionedCharacter
+      && this.gameState.underAttackPositionedCharacter.position === index) {
+      this.gamePlay.deselectCell(this.gameState.underAttackPositionedCharacter.position);
+    }
     this.updateCursor(index);
   }
 
   updateCursor(index) {
     if (this.gameState.selectedPositionedCharacter) {
-      this.updateCursorInSelectedCharacterState(index, this.gameState.selectedPositionedCharacter);
+      this.updateCursorBySelectedCharacterStrategy(index, this.gameState.selectedPositionedCharacter);
     } else {
-      this.updateCursorInNotSelectedCharacterState(index);
+      this.updateCursorByNotSelectedCharacterStrategy(index);
     }
   }
 
-  updateCursorInSelectedCharacterState(index, selectedPositionedCharacter) {
+  updateCursorBySelectedCharacterStrategy(index, selectedPositionedCharacter) {
     const character = this.findCharacter(index);
     if (character) {
       if (isCharacterOneOfType(character, this.player1Types)) {
-        // если персонаж свой
+        // если наведён на свой персонаж
         this.gamePlay.setCursor(cursors.pointer);
       } else if (canStep(index, selectedPositionedCharacter, character)){
-        // если персонаж противника и его можно атаковать
+        // если наведён на персонаж противника и его можно атаковать
         this.gamePlay.setCursor(cursors.crosshair);
+        this.gamePlay.selectCell(index, "red")
+        this.gameState.underAttackPositionedCharacter = new PositionedCharacter(character, index);
       } else {
-        // если персонаж противника и его нельзя атаковать
+        // если наведён на персонаж противника и его нельзя атаковать
         this.gamePlay.setCursor(cursors.notallowed);
       }
     } else {
@@ -127,8 +133,14 @@ export default class GameController {
     }
   }
 
-  updateCursorInNotSelectedCharacterState(index) {
-
+  updateCursorByNotSelectedCharacterStrategy(index) {
+    const character = this.findCharacter(index);
+    if (character && isCharacterOneOfType(character, this.player1Types)) {
+      // если наведён на свой персонаж
+      this.gamePlay.setCursor(cursors.pointer);
+    } else {
+      this.gamePlay.setCursor(cursors.notallowed);
+    }
   }
 
   findCharacter(index) {

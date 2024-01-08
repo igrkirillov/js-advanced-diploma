@@ -1,10 +1,11 @@
-import {calcTileType, isCharacterOneOfType, tooltip} from '../../js/utils.js';
+import {calcTileType, canStep, indexToXY, isCharacterOneOfType, tooltip} from '../../js/utils.js';
 import Bowman from "../../js/characters/Bowman.js";
 import Swordsman from "../../js/characters/Swordsman.js";
 import Magician from "../../js/characters/Magician.js";
 import Daemon from "../../js/characters/Daemon.js";
 import Undead from "../../js/characters/Undead.js";
 import Vampire from "../../js/characters/Vampire.js";
+import PositionedCharacter from "../../js/PositionedCharacter.js";
 
 describe('utils module', () => {
   test ('calcTileType top-left', () => {
@@ -44,5 +45,19 @@ describe('utils module', () => {
     const bowman = new Bowman(1);
     const player2Types = [Daemon, Undead, Vampire];
     expect(isCharacterOneOfType(bowman, player2Types)).toBe(false);
+  });
+  test ('indexToXY 8 -> {0:1}', () => {
+    expect(indexToXY(8)).toEqual({x: 0, y: 1});
+  });
+  test ('indexToXY 37 -> {5:4}', () => {
+    expect(indexToXY(37)).toEqual({x: 5, y: 4});
+  });
+  test ('canStep true', () => {
+    const selectedPositionedCharacter = new PositionedCharacter(new Bowman(1), 8);
+    expect(canStep(17, selectedPositionedCharacter)).toBe(true);
+  });
+  test ('canStep false', () => {
+    const selectedPositionedCharacter = new PositionedCharacter(new Bowman(1), 8);
+    expect(canStep(18, selectedPositionedCharacter)).toBe(false);
   });
 });

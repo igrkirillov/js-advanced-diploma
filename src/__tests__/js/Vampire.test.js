@@ -5,7 +5,8 @@ describe('Vampire module', () => {
     expect(new Vampire(1)).toMatchObject({
       level: 1,
       attack: 25,
-      defence: 25
+      defence: 25,
+      stepDistance: 2
     });
   });
 });
