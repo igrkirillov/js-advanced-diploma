@@ -7,22 +7,25 @@ import Swordsman from "./characters/Swordsman.js";
 import Magician from "./characters/Magician.js";
 import Daemon from "./characters/Daemon.js";
 import PositionedCharacter from "./PositionedCharacter.js";
-import {tooltip} from "./utils.js";
+import {isCharacterOneOfType, tooltip} from "./utils.js";
+import GameState from "./GameState.js";
+import GamePlay from "./GamePlay.js";
 
 export default class GameController {
   constructor(gamePlay, stateService) {
     this.gamePlay = gamePlay;
     this.stateService = stateService;
     this.positionedCharacters = [];
+    this.player1Types = [Bowman, Swordsman, Magician];
+    this.player2Types = [Daemon, Undead, Vampire];
+    this.gameState = new GameState();
   }
 
   init() {
     this.gamePlay.drawUi(themes.prairie);
 
-    const player1Types = [Bowman, Swordsman, Magician];
-    const team1 = generateTeam(player1Types, 3, 4);
-    const player2Types = [Daemon, Undead, Vampire];
-    const team2 = generateTeam(player2Types, 3, 4);
+    const team1 = generateTeam(this.player1Types, 3, 4);
+    const team2 = generateTeam(this.player2Types, 3, 4);
 
     this.positionedCharacters = [
       ...this.locateTeamPlayers(team1, this.getNextPlayer1Position),
@@ -31,6 +34,7 @@ export default class GameController {
 
     this.gamePlay.addCellEnterListener(index => this.onCellEnter(index));
     this.gamePlay.addCellLeaveListener(index => this.onCellLeave(index));
+    this.gamePlay.addCellClickListener(index => this.onCellClick(index));
     // TODO: add event listeners to gamePlay events
     // TODO: load saved stated from stateService
   }
@@ -63,7 +67,16 @@ export default class GameController {
   }
 
   onCellClick(index) {
-    // TODO: react to click
+    const character = this.findCharacter(index);
+    if (character && isCharacterOneOfType(character, this.player1Types)) {
+      if (this.gameState.selectedPosition) {
+        this.gamePlay.deselectCell(this.gameState.selectedPosition)
+      }
+      this.gamePlay.selectCell(index);
+      this.gameState.selectedPosition = index;
+    } else {
+      GamePlay.showError("Здесь нет своего героя!");
+    }
   }
 
   onCellEnter(index) {
@@ -81,8 +94,8 @@ export default class GameController {
     }
   }
 
-  findCharacter(position) {
-    const positionCharacter = this.positionedCharacters.find(posCharacter => posCharacter.position === position);
+  findCharacter(index) {
+    const positionCharacter = this.positionedCharacters.find(posCharacter => posCharacter.position === index);
     return positionCharacter ? positionCharacter.character : undefined;
   }
 }

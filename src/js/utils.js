@@ -61,3 +61,7 @@ export function calcHealthLevel(health) {
 export function tooltip(strings, level, attack, defence, health) {
   return `\u{1F396}${level} \u{2694}${attack} \u{1F6E1}${defence} \u{2764}${health}`;
 }
+
+export function isCharacterOneOfType(character, types) {
+  return !!types.find(type => character instanceof type);
+}
