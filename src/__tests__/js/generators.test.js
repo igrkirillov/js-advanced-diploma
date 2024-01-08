@@ -62,8 +62,7 @@ function toAssertTeamOneOfAndLevelAndCount(actual, allowedTypes, maxLevel, count
     }
   }
   return {
-    message: () => `team characters is one of ${allowedTypes} and level of each character is equal or less ${maxLevel} 
-      and count of characters is ${count}`,
+    message: () => `team characters is one of ${allowedTypes} and level of each character is equal or less ${maxLevel} and count of characters is ${count}`,
     pass: true
   };
 }

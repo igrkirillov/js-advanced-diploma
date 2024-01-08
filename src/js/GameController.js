@@ -7,11 +7,13 @@ import Swordsman from "./characters/Swordsman.js";
 import Magician from "./characters/Magician.js";
 import Daemon from "./characters/Daemon.js";
 import PositionedCharacter from "./PositionedCharacter.js";
+import {tooltip} from "./utils.js";
 
 export default class GameController {
   constructor(gamePlay, stateService) {
     this.gamePlay = gamePlay;
     this.stateService = stateService;
+    this.positionedCharacters = [];
   }
 
   init() {
@@ -22,10 +24,13 @@ export default class GameController {
     const player2Types = [Daemon, Undead, Vampire];
     const team2 = generateTeam(player2Types, 3, 4);
 
-    this.gamePlay.redrawPositions([
+    this.positionedCharacters = [
       ...this.locateTeamPlayers(team1, this.getNextPlayer1Position),
-      ...this.locateTeamPlayers(team2, this.getNextPlayer2Position)]);
+      ...this.locateTeamPlayers(team2, this.getNextPlayer2Position)];
+    this.gamePlay.redrawPositions(this.positionedCharacters);
 
+    this.gamePlay.addCellEnterListener(index => this.onCellEnter(index));
+    this.gamePlay.addCellLeaveListener(index => this.onCellLeave(index));
     // TODO: add event listeners to gamePlay events
     // TODO: load saved stated from stateService
   }
@@ -62,10 +67,22 @@ export default class GameController {
   }
 
   onCellEnter(index) {
-    // TODO: react to mouse enter
+    const character = this.findCharacter(index);
+    if (character) {
+      const message = tooltip`${character.level} ${character.attack} ${character.defence} ${character.health}`;
+      this.gamePlay.showCellTooltip(message, index);
+    }
   }
 
   onCellLeave(index) {
     // TODO: react to mouse leave
+    if (this.findCharacter(index)) {
+      this.gamePlay.hideCellTooltip(index);
+    }
+  }
+
+  findCharacter(position) {
+    const positionCharacter = this.positionedCharacters.find(posCharacter => posCharacter.position === position);
+    return positionCharacter ? positionCharacter.character : undefined;
   }
 }

@@ -57,3 +57,7 @@ export function calcHealthLevel(health) {
 
   return 'high';
 }
+
+export function tooltip(strings, level, attack, defence, health) {
+  return `\u{1F396}${level} \u{2694}${attack} \u{1F6E1}${defence} \u{2764}${health}`;
+}

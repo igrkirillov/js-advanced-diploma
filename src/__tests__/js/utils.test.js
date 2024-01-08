@@ -1,4 +1,4 @@
-import { calcTileType } from '../../js/utils.js';
+import {calcTileType, tooltip} from '../../js/utils.js';
 
 describe('utils module', () => {
   test ('calcTileType top-left', () => {
@@ -24,5 +24,10 @@ describe('utils module', () => {
   });
   test ('calcTileType center', () => {
     expect(calcTileType(4, 3)).toBe("center");
+  });
+
+  test ('tooltip', () => {
+    expect(tooltip`${1} ${25} ${25} ${50}`)
+      .toBe("\u{1F396}1 \u{2694}25 \u{1F6E1}25 \u{2764}50");
   });
 });
