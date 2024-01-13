@@ -75,8 +75,20 @@ export default class GameController {
       }
       this.gamePlay.selectCell(index);
       this.gameState.selectedPositionedCharacter = new PositionedCharacter(character, index);
+    } else if (character && isCharacterOneOfType(character, this.player2Types)) {
+
+    } else if (!character
+      && this.gameState.selectedPositionedCharacter
+      && canStep(index, this.gameState.selectedPositionedCharacter)) {
+      this.positionedCharacters.filter(element =>
+        element.position === this.gameState.selectedPositionedCharacter.position
+        && element.character === this.gameState.selectedPositionedCharacter.character)
+        .forEach(element => element.position = index);
+      this.gamePlay.redrawPositions(this.positionedCharacters);
+      this.gamePlay.deselectCell(this.gameState.selectedPositionedCharacter.position);
+      this.gameState.selectedPositionedCharacter = null;
     } else {
-      GamePlay.showError("Здесь нет своего персонажа!");
+      GamePlay.showError("Действие не определено!");
     }
   }
 
