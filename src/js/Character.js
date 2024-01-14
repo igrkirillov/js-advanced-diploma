@@ -25,4 +25,8 @@ export default class Character {
     }
     // TODO: выбросите исключение, если кто-то использует "new Character()"
   }
+
+  applyDamage(damage) {
+    this.health -= damage;
+  }
 }

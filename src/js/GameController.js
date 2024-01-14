@@ -11,6 +11,7 @@ import {canStep, isCharacterOneOfType, tooltip} from "./utils.js";
 import GameState from "./GameState.js";
 import GamePlay from "./GamePlay.js";
 import cursors from "./cursors.js";
+import Player2Strategy from "./Player2Strategy.js";
 
 export default class GameController {
   constructor(gamePlay, stateService) {
@@ -20,6 +21,7 @@ export default class GameController {
     this.player1Types = [Bowman, Swordsman, Magician];
     this.player2Types = [Daemon, Undead, Vampire];
     this.gameState = new GameState();
+    this.player2Strategy = new Player2Strategy(this.player2Types);
   }
 
   init() {
@@ -68,28 +70,64 @@ export default class GameController {
   }
 
   onCellClick(index) {
-    const character = this.findCharacter(index);
-    if (character && isCharacterOneOfType(character, this.player1Types)) {
+    const target = this.findCharacter(index);
+    if (target && isCharacterOneOfType(target, this.player1Types)) {
       if (this.gameState.selectedPositionedCharacter) {
         this.gamePlay.deselectCell(this.gameState.selectedPositionedCharacter.position)
       }
       this.gamePlay.selectCell(index);
-      this.gameState.selectedPositionedCharacter = new PositionedCharacter(character, index);
-    } else if (character && isCharacterOneOfType(character, this.player2Types)) {
-
-    } else if (!character
-      && this.gameState.selectedPositionedCharacter
-      && canStep(index, this.gameState.selectedPositionedCharacter)) {
-      this.positionedCharacters.filter(element =>
-        element.position === this.gameState.selectedPositionedCharacter.position
-        && element.character === this.gameState.selectedPositionedCharacter.character)
-        .forEach(element => element.position = index);
-      this.gamePlay.redrawPositions(this.positionedCharacters);
-      this.gamePlay.deselectCell(this.gameState.selectedPositionedCharacter.position);
-      this.gameState.selectedPositionedCharacter = null;
+      this.gameState.selectedPositionedCharacter = new PositionedCharacter(target, index);
+    } else if (target && isCharacterOneOfType(target, this.player2Types)) {
+      if (this.gameState.selectedPositionedCharacter) {
+        if (this.doStep("player1", this.gameState.selectedPositionedCharacter, index)) {
+          this.doPlayer2Step();
+        }
+      } else {
+        GamePlay.showError("Не выбран персонаж!");
+      }
+    } else if (!target
+      && this.gameState.selectedPositionedCharacter) {
+      if (this.doStep("player1", this.gameState.selectedPositionedCharacter, index)) {
+        this.gameState.selectedPositionedCharacter = null;
+        this.doPlayer2Step();
+      }
     } else {
       GamePlay.showError("Действие не определено!");
     }
+  }
+
+  doStep(playerName, positionedCharacter, index) {
+    let result;
+    const target = this.findCharacter(index);
+    if (target && canStep(index, positionedCharacter)) {
+      const attacker = positionedCharacter.character;
+      if (attacker !== target) {
+        const damage = Math.max(attacker.attack - target.defence, attacker.attack * 0.1);
+        target.applyDamage(damage);
+        (async () => {
+          await this.gamePlay.showDamage(index, damage);
+        })();
+        this.gamePlay.redrawPositions(this.positionedCharacters);
+      }
+      result = true;
+    } else if (!target && canStep(index, positionedCharacter)) {
+      this.positionedCharacters.filter(element =>
+        element.position === positionedCharacter.position
+        && element.character === positionedCharacter.character)
+        .forEach(element => element.position = index);
+      this.gamePlay.redrawPositions(this.positionedCharacters);
+      this.gamePlay.deselectCell(positionedCharacter.position);
+      result = true;
+    } else {
+      GamePlay.showError(`${playerName}, нельзя ходить ${positionedCharacter.character.constructor.name} на ячейку ${index}!`);
+      result = false;
+    }
+    return result;
+  }
+
+  doPlayer2Step() {
+    const step = this.player2Strategy.getStep(this.positionedCharacters);
+    this.doStep("player2", step.positionedCharacter, step.index);
   }
 
   onCellEnter(index) {
@@ -109,8 +147,8 @@ export default class GameController {
     if (this.gameState.underAttackPositionedCharacter
       && this.gameState.underAttackPositionedCharacter.position === index) {
       this.gamePlay.deselectCell(this.gameState.underAttackPositionedCharacter.position);
+      this.gameState.underAttackPositionedCharacter = null;
     }
-    this.updateCursor(index);
   }
 
   updateCursor(index) {
@@ -127,7 +165,7 @@ export default class GameController {
       if (isCharacterOneOfType(character, this.player1Types)) {
         // если наведён на свой персонаж
         this.gamePlay.setCursor(cursors.pointer);
-      } else if (canStep(index, selectedPositionedCharacter, character)){
+      } else if (canStep(index, selectedPositionedCharacter)){
         // если наведён на персонаж противника и его можно атаковать
         this.gamePlay.setCursor(cursors.crosshair);
         this.gamePlay.selectCell(index, "red")
