@@ -12,6 +12,7 @@ import GameState from "./GameState.js";
 import GamePlay from "./GamePlay.js";
 import cursors from "./cursors.js";
 import Player2Strategy from "./Player2Strategy.js";
+import FindAndKillWeakerPlayer2StrategyImpl from "./FindAndKillWeakerPlayer2StrategyImpl.js";
 
 export default class GameController {
   constructor(gamePlay, stateService) {
@@ -21,7 +22,7 @@ export default class GameController {
     this.player1Types = [Bowman, Swordsman, Magician];
     this.player2Types = [Daemon, Undead, Vampire];
     this.gameState = new GameState();
-    this.player2Strategy = new Player2Strategy(this.player2Types);
+    this.player2Strategy = new FindAndKillWeakerPlayer2StrategyImpl(this.player2Types, this.player1Types);
   }
 
   init() {
@@ -127,7 +128,7 @@ export default class GameController {
 
   doPlayer2Step() {
     const step = this.player2Strategy.getStep(this.positionedCharacters);
-    this.doStep("player2", step.positionedCharacter, step.index);
+    this.doStep("player2", step.positionedCharacter, step.position);
   }
 
   onCellEnter(index) {

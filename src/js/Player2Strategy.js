@@ -10,7 +10,7 @@ export default class Player2Strategy {
     const firstPositionedCharacter = positionedCharacters.filter(el => isCharacterOneOfType(el.character, this.player2Types))[0];
     return {
       positionedCharacter: firstPositionedCharacter,
-      index: firstPositionedCharacter.position
+      position: firstPositionedCharacter.position
     };
   }
 }

@@ -85,3 +85,7 @@ export function indexToXY(index) {
   const x = index - 8 * y;
   return {x: x, y: y};
 }
+
+export function xyToIndex(point) {
+  return point.x + 8*point.y;
+}
