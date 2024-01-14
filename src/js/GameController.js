@@ -11,7 +11,6 @@ import {canStep, isCharacterOneOfType, tooltip} from "./utils.js";
 import GameState from "./GameState.js";
 import GamePlay from "./GamePlay.js";
 import cursors from "./cursors.js";
-import Player2Strategy from "./Player2Strategy.js";
 import FindAndKillWeakerPlayer2StrategyImpl from "./FindAndKillWeakerPlayer2StrategyImpl.js";
 
 export default class GameController {
@@ -70,7 +69,7 @@ export default class GameController {
     return position;
   }
 
-  onCellClick(index) {
+  async onCellClick(index) {
     const target = this.findCharacter(index);
     if (target && isCharacterOneOfType(target, this.player1Types)) {
       if (this.gameState.selectedPositionedCharacter) {
@@ -80,24 +79,24 @@ export default class GameController {
       this.gameState.selectedPositionedCharacter = new PositionedCharacter(target, index);
     } else if (target && isCharacterOneOfType(target, this.player2Types)) {
       if (this.gameState.selectedPositionedCharacter) {
-        if (this.doStep("player1", this.gameState.selectedPositionedCharacter, index)) {
-          this.doPlayer2Step();
+        if (await this.doStep("player1", this.gameState.selectedPositionedCharacter, index)) {
+          await this.doPlayer2Step();
         }
       } else {
         GamePlay.showError("Не выбран персонаж!");
       }
     } else if (!target
       && this.gameState.selectedPositionedCharacter) {
-      if (this.doStep("player1", this.gameState.selectedPositionedCharacter, index)) {
+      if (await this.doStep("player1", this.gameState.selectedPositionedCharacter, index)) {
         this.gameState.selectedPositionedCharacter = null;
-        this.doPlayer2Step();
+        await this.doPlayer2Step();
       }
     } else {
       GamePlay.showError("Действие не определено!");
     }
   }
 
-  doStep(playerName, positionedCharacter, index) {
+  async doStep(playerName, positionedCharacter, index) {
     let result;
     const target = this.findCharacter(index);
     if (target && canStep(index, positionedCharacter)) {
@@ -105,10 +104,8 @@ export default class GameController {
       if (attacker !== target) {
         const damage = Math.max(attacker.attack - target.defence, attacker.attack * 0.1);
         target.applyDamage(damage);
-        (async () => {
-          await this.gamePlay.showDamage(index, damage);
-        })();
-        this.gamePlay.redrawPositions(this.positionedCharacters);
+        await this.gamePlay.showDamage(index, damage);
+        this.gamePlay.redrawPositions(this.positionedCharacters)
       }
       result = true;
     } else if (!target && canStep(index, positionedCharacter)) {
@@ -126,9 +123,9 @@ export default class GameController {
     return result;
   }
 
-  doPlayer2Step() {
+  async doPlayer2Step() {
     const step = this.player2Strategy.getStep(this.positionedCharacters);
-    this.doStep("player2", step.positionedCharacter, step.position);
+    await this.doStep("player2", step.positionedCharacter, step.position);
   }
 
   onCellEnter(index) {
