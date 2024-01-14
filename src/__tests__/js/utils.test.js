@@ -1,4 +1,4 @@
-import {calcTileType, canStep, indexToXY, isCharacterOneOfType, tooltip} from '../../js/utils.js';
+import {calcTileType, canStep, indexToXY, isCharacterOneOfType, tooltip, xyToIndex} from '../../js/utils.js';
 import Bowman from "../../js/characters/Bowman.js";
 import Swordsman from "../../js/characters/Swordsman.js";
 import Magician from "../../js/characters/Magician.js";
@@ -51,6 +51,12 @@ describe('utils module', () => {
   });
   test ('indexToXY 37 -> {5:4}', () => {
     expect(indexToXY(37)).toEqual({x: 5, y: 4});
+  });
+  test ('xyToIndex {0:1} -> 8', () => {
+    expect(xyToIndex({x: 0, y: 1})).toEqual(8);
+  });
+  test ('xyToIndex {5:4} -> 37', () => {
+    expect(xyToIndex({x: 5, y: 4})).toEqual(37);
   });
   test ('canStep true', () => {
     const selectedPositionedCharacter = new PositionedCharacter(new Bowman(1), 8);
