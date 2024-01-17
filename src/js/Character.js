@@ -29,4 +29,12 @@ export default class Character {
   applyDamage(damage) {
     this.health -= damage;
   }
+
+  incrementLevel() {
+    const newHealth = Math.min(100, this.health + 80);
+    const newAttack = Math.max(this.attack, this.attack * (80 + this.health) / 100);
+    this.health = newHealth;
+    this.attack = newAttack;
+    this.level += 1;
+  }
 }

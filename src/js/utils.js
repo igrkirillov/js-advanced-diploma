@@ -1,3 +1,5 @@
+import {themesSortedByLevel} from "./themes.js";
+
 /**
  * @todo
  * @param index - индекс поля
@@ -88,4 +90,10 @@ export function indexToXY(index) {
 
 export function xyToIndex(point) {
   return point.x + 8*point.y;
+}
+
+export function nextTheme(currentTheme) {
+  const array = themesSortedByLevel;
+  const nextIndex = Math.max(0, array.indexOf(currentTheme) + 1) % array.length;
+  return array[nextIndex];
 }

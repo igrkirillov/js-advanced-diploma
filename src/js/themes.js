@@ -5,4 +5,10 @@ const themes = {
   mountain: 'mountain',
 };
 
+export const themesSortedByLevel = [
+  themes.prairie,
+  themes.desert,
+  themes.arctic,
+  themes.mountain ];
+
 export default themes;
