@@ -1,11 +1,5 @@
 import themes from "./themes.js";
 import {generateTeam} from "./generators.js";
-import Undead from "./characters/Undead.js";
-import Vampire from "./characters/Vampire.js";
-import Bowman from "./characters/Bowman.js";
-import Swordsman from "./characters/Swordsman.js";
-import Magician from "./characters/Magician.js";
-import Daemon from "./characters/Daemon.js";
 import PositionedCharacter from "./PositionedCharacter.js";
 import {canStep, isCharacterOneOfType, nextTheme, tooltip} from "./utils.js";
 import GameState from "./GameState.js";
@@ -20,22 +14,47 @@ export default class GameController {
   constructor(gamePlay, stateService) {
     this.gamePlay = gamePlay;
     this.stateService = stateService;
-    this.positionedCharacters = [];
-    this.player1Types = [Bowman, Swordsman, Magician];
-    this.player2Types = [Daemon, Undead, Vampire];
     this.gameState = new GameState();
-    this.player2Strategy = new FindAndKillWeakerPlayer2StrategyImpl(this.player2Types, this.player1Types);
+    this.player2Strategy = new FindAndKillWeakerPlayer2StrategyImpl(this.gameState.player2Types, this.gameState.player1Types);
   }
 
   init() {
-    this.resetPlayersCharacters();
-    this.resetPlayingField();
-
+    // TODO: add event listeners to gamePlay events
+    // TODO: load saved stated from stateService
     this.gamePlay.addCellEnterListener(index => this.onCellEnter(index));
     this.gamePlay.addCellLeaveListener(index => this.onCellLeave(index));
     this.gamePlay.addCellClickListener(index => this.onCellClick(index));
-    // TODO: add event listeners to gamePlay events
-    // TODO: load saved stated from stateService
+    this.gamePlay.addNewGameListener(() => this.resetGame());
+    this.gamePlay.addSaveGameListener(() => this.saveGame());
+    this.gamePlay.addLoadGameListener(() => this.loadGame());
+
+    this.resetGame();
+  }
+
+  resetGame() {
+    this.resetTheme()
+    this.resetPlayersCharacters();
+    this.redrawPlayingField();
+  }
+
+  saveGame() {
+    try {
+      this.stateService.save(this.gameState);
+    } catch (e) {
+      GamePlay.showError(`Упс! Не удалось сохранить игру в память! Причина: ${e.message}`);
+      return;
+    }
+    GamePlay.showMessage("Успех! Игра сохранена в память!");
+  }
+
+  loadGame() {
+    try {
+      this.gameState = this.stateService.load();
+    } catch (e) {
+      GamePlay.showError(`Упс! Не удалось загрузить игру из памяти! Причина: ${e.message}`);
+      return;
+    }
+    this.redrawPlayingField();
   }
 
   locateTeamPlayers(team, positionsGetter) {
@@ -68,13 +87,13 @@ export default class GameController {
   async onCellClick(index) {
     let stepResult = null;
     const target = this.findCharacter(index);
-    if (target && isCharacterOneOfType(target, this.player1Types)) {
+    if (target && isCharacterOneOfType(target, this.gameState.player1Types)) {
       if (this.gameState.selectedPositionedCharacter) {
         this.gamePlay.deselectCell(this.gameState.selectedPositionedCharacter.position)
       }
       this.gamePlay.selectCell(index);
       this.gameState.selectedPositionedCharacter = new PositionedCharacter(target, index);
-    } else if (target && isCharacterOneOfType(target, this.player2Types)) {
+    } else if (target && isCharacterOneOfType(target, this.gameState.player2Types)) {
       if (this.gameState.selectedPositionedCharacter) {
         stepResult = await this.doStep(players.player1, new Step(this.gameState.selectedPositionedCharacter, index));
       } else {
@@ -97,13 +116,13 @@ export default class GameController {
 
   async processStepResult(stepResult) {
     if (stepResult.roundFinishedFlag && stepResult.winnerName === players.player1) {
-      this.positionedCharacters.forEach(el => {
+      this.gameState.positionedCharacters.forEach(el => {
         el.character.incrementLevel();
       });
       this.gameState.currentTheme = nextTheme(this.gameState.currentTheme);
       this.gamePlay.drawUi(this.gameState.currentTheme);
       this.addNewPlayer2Characters();
-      this.gamePlay.redrawPositions(this.positionedCharacters);
+      this.gamePlay.redrawPositions(this.gameState.positionedCharacters);
     } else if (stepResult.roundFinishedFlag && stepResult.winnerName === players.player2) {
       GamePlay.showMessage("Game over!!!");
       this.resetPlayersCharacters();
@@ -118,29 +137,32 @@ export default class GameController {
     }
   }
 
-  resetPlayingField() {
-    this.gameState.currentTheme = themes.prairie;
+  redrawPlayingField() {
     this.gamePlay.drawUi(this.gameState.currentTheme);
-    this.gamePlay.redrawPositions(this.positionedCharacters);
+    this.gamePlay.redrawPositions(this.gameState.positionedCharacters);
+  }
+
+  resetTheme() {
+    this.gameState.currentTheme = themes.prairie;
   }
 
   resetPlayersCharacters() {
-    this.positionedCharacters = [];
+    this.gameState.positionedCharacters = [];
     this.addNewPlayer1Characters();
     this.addNewPlayer2Characters();
   }
 
   addNewPlayer1Characters() {
-    const team1 = generateTeam(this.player1Types, 3, 4);
-    this.positionedCharacters = [
-      ...this.positionedCharacters,
+    const team1 = generateTeam(this.gameState.player1Types, 3, 4);
+    this.gameState.positionedCharacters = [
+      ...this.gameState.positionedCharacters,
       ...this.locateTeamPlayers(team1, this.getNextPlayer1Position)];
   }
 
   addNewPlayer2Characters() {
-    const team2 = generateTeam(this.player2Types, 3, 1);
-    this.positionedCharacters = [
-      ...this.positionedCharacters,
+    const team2 = generateTeam(this.gameState.player2Types, 3, 1);
+    this.gameState.positionedCharacters = [
+      ...this.gameState.positionedCharacters,
       ...this.locateTeamPlayers(team2, this.getNextPlayer2Position)];
   }
 
@@ -156,21 +178,23 @@ export default class GameController {
         this.findAndDeleteZeroHealthyCharacters();
         if (this.isPlayer1HaveEmptyCharacters()) {
           stepResult = new StepResult(playerName, true, true, players.player2);
+          this.gameState.player2Score += 1;
         } else if (this.isPlayer2HaveEmptyCharacters()) {
           stepResult = new StepResult(playerName, true, true, players.player1);
+          this.gameState.player1Score += 1;
         } else {
           stepResult = new StepResult(playerName, true, false);
         }
-        this.gamePlay.redrawPositions(this.positionedCharacters)
+        this.gamePlay.redrawPositions(this.gameState.positionedCharacters)
       } else {
         stepResult = new StepResult(playerName, true);
       }
     } else if (!target && canStep(step)) {
-      this.positionedCharacters.filter(element =>
+      this.gameState.positionedCharacters.filter(element =>
         element.position === step.positionedCharacter.position
         && element.character === step.positionedCharacter.character)
         .forEach(element => element.position = step.position);
-      this.gamePlay.redrawPositions(this.positionedCharacters);
+      this.gamePlay.redrawPositions(this.gameState.positionedCharacters);
       this.gamePlay.deselectCell(step.positionedCharacter.position);
       stepResult = new StepResult(playerName, true);
     } else {
@@ -181,24 +205,24 @@ export default class GameController {
   }
 
   async doPlayer2Step() {
-    const step = this.player2Strategy.getStep(this.positionedCharacters);
+    const step = this.player2Strategy.getStep(this.gameState.positionedCharacters);
     return await this.doStep(players.player2, step);
   }
 
   findAndDeleteZeroHealthyCharacters() {
-    const zeroHealthyPositionedCharacters = this.positionedCharacters.filter(el => el.character.health <= 0);
+    const zeroHealthyPositionedCharacters = this.gameState.positionedCharacters.filter(el => el.character.health <= 0);
     zeroHealthyPositionedCharacters.forEach(el => {
-      const index =  this.positionedCharacters.indexOf(el);
-      this.positionedCharacters.splice(index, 1);
+      const index =  this.gameState.positionedCharacters.indexOf(el);
+      this.gameState.positionedCharacters.splice(index, 1);
     });
   }
 
   isPlayer2HaveEmptyCharacters() {
-    return this.positionedCharacters.filter(el => isCharacterOneOfType(el.character, this.player2Types)).length === 0;
+    return this.gameState.positionedCharacters.filter(el => isCharacterOneOfType(el.character, this.gameState.player2Types)).length === 0;
   }
 
   isPlayer1HaveEmptyCharacters() {
-    return this.positionedCharacters.filter(el => isCharacterOneOfType(el.character, this.player1Types)).length === 0;
+    return this.gameState.positionedCharacters.filter(el => isCharacterOneOfType(el.character, this.gameState.player1Types)).length === 0;
   }
 
   onCellEnter(index) {
@@ -233,7 +257,7 @@ export default class GameController {
   updateCursorBySelectedCharacterStrategy(index, selectedPositionedCharacter) {
     const character = this.findCharacter(index);
     if (character) {
-      if (isCharacterOneOfType(character, this.player1Types)) {
+      if (isCharacterOneOfType(character, this.gameState.player1Types)) {
         // если наведён на свой персонаж
         this.gamePlay.setCursor(cursors.pointer);
       } else if (canStep(new Step(selectedPositionedCharacter, index))){
@@ -256,7 +280,7 @@ export default class GameController {
 
   updateCursorByNotSelectedCharacterStrategy(index) {
     const character = this.findCharacter(index);
-    if (character && isCharacterOneOfType(character, this.player1Types)) {
+    if (character && isCharacterOneOfType(character, this.gameState.player1Types)) {
       // если наведён на свой персонаж
       this.gamePlay.setCursor(cursors.pointer);
     } else {
@@ -265,7 +289,7 @@ export default class GameController {
   }
 
   findCharacter(index) {
-    const positionCharacter = this.positionedCharacters.find(posCharacter => posCharacter.position === index);
+    const positionCharacter = this.gameState.positionedCharacters.find(posCharacter => posCharacter.position === index);
     return positionCharacter ? positionCharacter.character : undefined;
   }
 }

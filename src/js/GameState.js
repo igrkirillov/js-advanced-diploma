@@ -1,8 +1,25 @@
+import Bowman from "./characters/Bowman.js";
+import Swordsman from "./characters/Swordsman.js";
+import Magician from "./characters/Magician.js";
+import Daemon from "./characters/Daemon.js";
+import Undead from "./characters/Undead.js";
+import Vampire from "./characters/Vampire.js";
+
 export default class GameState {
   constructor() {
+    // данные, меняющиеся runtime
+    this.positionedCharacters = [];
     this.selectedPositionedCharacter = null;
     this.underAttackPositionedCharacter = null;
     this.currentTheme = null;
+
+    // данные, об очках игроков
+    this.player1Score = 0;
+    this.player2Score = 0;
+
+    // данные статичные, не меняющиеся во время игры
+    this.player1Types = [Bowman, Swordsman, Magician];
+    this.player2Types = [Daemon, Undead, Vampire];
   }
   static from(object) {
     // TODO: create object
