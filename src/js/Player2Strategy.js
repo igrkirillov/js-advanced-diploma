@@ -1,4 +1,5 @@
 import {isCharacterOneOfType} from "./utils.js";
+import Step from "./Step.js";
 
 export default class Player2Strategy {
   constructor(player2Types) {
@@ -8,9 +9,6 @@ export default class Player2Strategy {
   getStep(positionedCharacters) {
     // по умолчанию ничего не делает, просто возвращает свой же номер позиции - никуда не ходит
     const firstPositionedCharacter = positionedCharacters.filter(el => isCharacterOneOfType(el.character, this.player2Types))[0];
-    return {
-      positionedCharacter: firstPositionedCharacter,
-      position: firstPositionedCharacter.position
-    };
+    return new Step(firstPositionedCharacter, firstPositionedCharacter.position);
   }
 }

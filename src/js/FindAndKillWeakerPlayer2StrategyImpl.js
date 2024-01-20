@@ -1,5 +1,6 @@
 import Player2Strategy from "./Player2Strategy.js";
 import {indexToXY, isCharacterOneOfType, xyToIndex} from "./utils.js";
+import Step from "./Step.js";
 
 export default class FindAndKillWeakerPlayer2StrategyImpl extends Player2Strategy {
   constructor(player2Types, player1Types) {
@@ -14,10 +15,9 @@ export default class FindAndKillWeakerPlayer2StrategyImpl extends Player2Strateg
       .sort((el1, el2) => el1.character.health - el2.character.health)[0];
     const closestPositionedCharacter2 = this.findClosestPositionedCharacter(weakerPositionedCharacter1, positionedCharacters2);
     const closestStepPosition = this.findClosestStepIndex(weakerPositionedCharacter1, closestPositionedCharacter2);
-    return {
-      positionedCharacter: closestPositionedCharacter2,
-      position: closestStepPosition
-    };
+    const step = new Step(closestPositionedCharacter2, closestStepPosition);
+    console.log(step.toString());
+    return step;
   }
 
   findClosestPositionedCharacter(targetPositionedCharacter, positionedCharacters) {

@@ -1,8 +1,8 @@
 export default class StepResult {
-  constructor(playerName, stepDoneFlag, roundOverFlag, winnerName) {
+  constructor(playerName, stepDoneFlag, roundFinishedFlag, winnerName) {
     this.playerName = playerName;
     this.stepDoneFlag = stepDoneFlag;
-    this.roundOverFlag = roundOverFlag;
+    this.roundFinishedFlag = roundFinishedFlag;
     this.winnerName = winnerName;
   }
 }

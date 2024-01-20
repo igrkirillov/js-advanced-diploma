@@ -14,6 +14,7 @@ import cursors from "./cursors.js";
 import FindAndKillWeakerPlayer2StrategyImpl from "./FindAndKillWeakerPlayer2StrategyImpl.js";
 import StepResult from "./StepResult.js";
 import players from "./players.js";
+import Step from "./Step.js";
 
 export default class GameController {
   constructor(gamePlay, stateService) {
@@ -75,13 +76,13 @@ export default class GameController {
       this.gameState.selectedPositionedCharacter = new PositionedCharacter(target, index);
     } else if (target && isCharacterOneOfType(target, this.player2Types)) {
       if (this.gameState.selectedPositionedCharacter) {
-        stepResult = await this.doStep(players.player1, this.gameState.selectedPositionedCharacter, index);
+        stepResult = await this.doStep(players.player1, new Step(this.gameState.selectedPositionedCharacter, index));
       } else {
         GamePlay.showError("Не выбран персонаж!");
       }
     } else if (!target
       && this.gameState.selectedPositionedCharacter) {
-      stepResult = await this.doStep(players.player1, this.gameState.selectedPositionedCharacter, index)
+      stepResult = await this.doStep(players.player1, new Step(this.gameState.selectedPositionedCharacter, index))
       if (stepResult && stepResult.stepDoneFlag) {
         this.gameState.selectedPositionedCharacter = null;
       }
@@ -95,7 +96,7 @@ export default class GameController {
   }
 
   async processStepResult(stepResult) {
-    if (stepResult.roundOverFlag && stepResult.winnerName === players.player1) {
+    if (stepResult.roundFinishedFlag && stepResult.winnerName === players.player1) {
       this.positionedCharacters.forEach(el => {
         el.character.incrementLevel();
       });
@@ -103,7 +104,7 @@ export default class GameController {
       this.gamePlay.drawUi(this.gameState.currentTheme);
       this.addNewPlayer2Characters();
       this.gamePlay.redrawPositions(this.positionedCharacters);
-    } else if (stepResult.roundOverFlag && stepResult.winnerName === players.player2) {
+    } else if (stepResult.roundFinishedFlag && stepResult.winnerName === players.player2) {
       GamePlay.showMessage("Game over!!!");
       this.resetPlayersCharacters();
       this.resetPlayingField();
@@ -143,35 +144,37 @@ export default class GameController {
       ...this.locateTeamPlayers(team2, this.getNextPlayer2Position)];
   }
 
-  async doStep(playerName, positionedCharacter, index) {
+  async doStep(playerName, step) {
     let stepResult;
-    const target = this.findCharacter(index);
-    if (target && canStep(index, positionedCharacter)) {
-      const attacker = positionedCharacter.character;
+    const target = this.findCharacter(step.position);
+    if (target && canStep(step)) {
+      const attacker = step.positionedCharacter.character;
       if (attacker !== target) {
         const damage = Math.max(attacker.attack - target.defence, attacker.attack * 0.1);
         target.applyDamage(damage);
-        await this.gamePlay.showDamage(index, damage);
+        await this.gamePlay.showDamage(step.position, damage);
         this.findAndDeleteZeroHealthyCharacters();
         if (this.isPlayer1HaveEmptyCharacters()) {
           stepResult = new StepResult(playerName, true, true, players.player2);
         } else if (this.isPlayer2HaveEmptyCharacters()) {
           stepResult = new StepResult(playerName, true, true, players.player1);
+        } else {
+          stepResult = new StepResult(playerName, true, false);
         }
         this.gamePlay.redrawPositions(this.positionedCharacters)
       } else {
         stepResult = new StepResult(playerName, true);
       }
-    } else if (!target && canStep(index, positionedCharacter)) {
+    } else if (!target && canStep(step)) {
       this.positionedCharacters.filter(element =>
-        element.position === positionedCharacter.position
-        && element.character === positionedCharacter.character)
-        .forEach(element => element.position = index);
+        element.position === step.positionedCharacter.position
+        && element.character === step.positionedCharacter.character)
+        .forEach(element => element.position = step.position);
       this.gamePlay.redrawPositions(this.positionedCharacters);
-      this.gamePlay.deselectCell(positionedCharacter.position);
+      this.gamePlay.deselectCell(step.positionedCharacter.position);
       stepResult = new StepResult(playerName, true);
     } else {
-      GamePlay.showError(`${playerName}, нельзя ходить ${positionedCharacter.character.constructor.name} на ячейку ${index}!`);
+      GamePlay.showError(`${playerName}, нельзя ходить ${step.positionedCharacter.character.constructor.name} на ячейку ${step.position}!`);
       stepResult = new StepResult(playerName, false);
     }
     return stepResult;
@@ -179,7 +182,7 @@ export default class GameController {
 
   async doPlayer2Step() {
     const step = this.player2Strategy.getStep(this.positionedCharacters);
-    return await this.doStep(players.player2, step.positionedCharacter, step.position);
+    return await this.doStep(players.player2, step);
   }
 
   findAndDeleteZeroHealthyCharacters() {
@@ -233,7 +236,7 @@ export default class GameController {
       if (isCharacterOneOfType(character, this.player1Types)) {
         // если наведён на свой персонаж
         this.gamePlay.setCursor(cursors.pointer);
-      } else if (canStep(index, selectedPositionedCharacter)){
+      } else if (canStep(new Step(selectedPositionedCharacter, index))){
         // если наведён на персонаж противника и его можно атаковать
         this.gamePlay.setCursor(cursors.crosshair);
         this.gamePlay.selectCell(index, "red")
@@ -243,7 +246,7 @@ export default class GameController {
         this.gamePlay.setCursor(cursors.notallowed);
       }
     } else {
-      if (canStep(index, selectedPositionedCharacter)) {
+      if (canStep(new Step(selectedPositionedCharacter, index))) {
         this.gamePlay.setCursor(cursors.pointer);
       } else {
         this.gamePlay.setCursor(cursors.notallowed);

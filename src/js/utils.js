@@ -68,15 +68,15 @@ export function isCharacterOneOfType(character, types) {
   return !!types.find(type => character instanceof type);
 }
 
-export function canStep(index, selectedPositionedCharacter) {
-  const selectedPos = indexToXY(index);
-  const opponentPos = indexToXY(selectedPositionedCharacter.position);
+export function canStep(step) {
+  const selectedPos = indexToXY(step.position);
+  const opponentPos = indexToXY(step.positionedCharacter.position);
   if (selectedPos.x === opponentPos.x) {
-    return Math.abs(selectedPos.y - opponentPos.y) <= selectedPositionedCharacter.character.stepDistance;
+    return Math.abs(selectedPos.y - opponentPos.y) <= step.positionedCharacter.character.stepDistance;
   } else if (selectedPos.y === opponentPos.y) {
-    return Math.abs(selectedPos.x - opponentPos.x) <= selectedPositionedCharacter.character.stepDistance;
+    return Math.abs(selectedPos.x - opponentPos.x) <= step.positionedCharacter.character.stepDistance;
   } else if (Math.abs(selectedPos.x - opponentPos.x) === Math.abs(selectedPos.y - opponentPos.y)) {
-    return Math.abs(selectedPos.x - opponentPos.x) <= selectedPositionedCharacter.character.stepDistance;
+    return Math.abs(selectedPos.x - opponentPos.x) <= step.positionedCharacter.character.stepDistance;
   } else {
     return false;
   }
