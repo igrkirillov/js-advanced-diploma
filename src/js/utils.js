@@ -97,3 +97,18 @@ export function nextTheme(currentTheme) {
   const nextIndex = Math.max(0, array.indexOf(currentTheme) + 1) % array.length;
   return array[nextIndex];
 }
+
+export function isLastTheme(currentTheme) {
+  const array = themesSortedByLevel;
+  return currentTheme === array[array.length - 1];
+}
+
+export function createResultGameText(player1Score, player2Score) {
+  if (player1Score === player2Score) {
+    return `Ничья! Счёт ${player1Score} : ${player2Score}`;
+  } else if (player1Score > player2Score) {
+    return `Победил игрок №1 со счётом ${player1Score} : ${player2Score}`;
+  } else if (player2Score > player1Score) {
+    return `Победил игрок №2 со счётом ${player2Score} : ${player1Score}`;
+  }
+}

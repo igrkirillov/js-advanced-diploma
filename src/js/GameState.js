@@ -12,6 +12,7 @@ export default class GameState {
     this.selectedPositionedCharacter = null;
     this.underAttackPositionedCharacter = null;
     this.currentTheme = null;
+    this.gameFinishedFlag = false;
 
     // данные, об очках игроков
     this.player1Score = 0;
@@ -20,6 +21,7 @@ export default class GameState {
     // данные статичные, не меняющиеся во время игры
     this.player1Types = [Bowman, Swordsman, Magician];
     this.player2Types = [Daemon, Undead, Vampire];
+    this.player2CharactersQuantity = 1; // кол-во персонажей у 2-го игрока
   }
   static from(object) {
     // TODO: create object

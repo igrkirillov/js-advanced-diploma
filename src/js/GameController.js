@@ -1,7 +1,7 @@
 import themes from "./themes.js";
 import {generateTeam} from "./generators.js";
 import PositionedCharacter from "./PositionedCharacter.js";
-import {canStep, isCharacterOneOfType, nextTheme, tooltip} from "./utils.js";
+import {canStep, createResultGameText, isCharacterOneOfType, isLastTheme, nextTheme, tooltip} from "./utils.js";
 import GameState from "./GameState.js";
 import GamePlay from "./GamePlay.js";
 import cursors from "./cursors.js";
@@ -19,8 +19,6 @@ export default class GameController {
   }
 
   init() {
-    // TODO: add event listeners to gamePlay events
-    // TODO: load saved stated from stateService
     this.gamePlay.addCellEnterListener(index => this.onCellEnter(index));
     this.gamePlay.addCellLeaveListener(index => this.onCellLeave(index));
     this.gamePlay.addCellClickListener(index => this.onCellClick(index));
@@ -32,6 +30,9 @@ export default class GameController {
   }
 
   resetGame() {
+    this.gameState.gameFinishedFlag = false;
+    this.gameState.player1Score = 0;
+    this.gameState.player2Score = 0;
     this.resetTheme()
     this.resetPlayersCharacters();
     this.redrawPlayingField();
@@ -85,6 +86,10 @@ export default class GameController {
   }
 
   async onCellClick(index) {
+    if (this.gameState.gameFinishedFlag) {
+      // не реагировать на событие, так как игра окончена
+      return;
+    }
     let stepResult = null;
     const target = this.findCharacter(index);
     if (target && isCharacterOneOfType(target, this.gameState.player1Types)) {
@@ -115,7 +120,11 @@ export default class GameController {
   }
 
   async processStepResult(stepResult) {
-    if (stepResult.roundFinishedFlag && stepResult.winnerName === players.player1) {
+    if (stepResult.roundFinishedFlag && isLastTheme(this.gameState.currentTheme)) {
+      // игра окончена
+      this.gameState.gameFinishedFlag = true;
+      GamePlay.showMessage("Игра окончена! " + createResultGameText(this.gameState.player1Score, this.gameState.player2Score))
+    } else if (stepResult.roundFinishedFlag && stepResult.winnerName === players.player1) {
       this.gameState.positionedCharacters.forEach(el => {
         el.character.incrementLevel();
       });
@@ -125,8 +134,7 @@ export default class GameController {
       this.gamePlay.redrawPositions(this.gameState.positionedCharacters);
     } else if (stepResult.roundFinishedFlag && stepResult.winnerName === players.player2) {
       GamePlay.showMessage("Game over!!!");
-      this.resetPlayersCharacters();
-      this.resetPlayingField();
+      this.resetGame();
     } else {
       if (stepResult.playerName === players.player1) {
         const stepResult2 = await this.doPlayer2Step();
@@ -160,7 +168,7 @@ export default class GameController {
   }
 
   addNewPlayer2Characters() {
-    const team2 = generateTeam(this.gameState.player2Types, 3, 1);
+    const team2 = generateTeam(this.gameState.player2Types, 3, this.gameState.player2CharactersQuantity);
     this.gameState.positionedCharacters = [
       ...this.gameState.positionedCharacters,
       ...this.locateTeamPlayers(team2, this.getNextPlayer2Position)];
@@ -226,6 +234,10 @@ export default class GameController {
   }
 
   onCellEnter(index) {
+    if (this.gameState.gameFinishedFlag) {
+      // не реагировать на событие, так как игра окончена
+      return;
+    }
     const character = this.findCharacter(index);
     if (character) {
       const message = tooltip`${character.level} ${character.attack} ${character.defence} ${character.health}`;
@@ -235,7 +247,10 @@ export default class GameController {
   }
 
   onCellLeave(index) {
-    // TODO: react to mouse leave
+    if (this.gameState.gameFinishedFlag) {
+      // не реагировать на событие, так как игра окончена
+      return;
+    }
     if (this.findCharacter(index)) {
       this.gamePlay.hideCellTooltip(index);
     }
