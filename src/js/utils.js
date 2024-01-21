@@ -92,6 +92,7 @@ export function isCharacterOneOfType(character, types) {
 
 /**
  * Определяет, может ли быть выполнен данный шаг step
+ *
  * @param step объект шаг Step
  * @returns {boolean} true - если да, может; false - если нет, не может;
  */
