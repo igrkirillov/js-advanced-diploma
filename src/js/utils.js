@@ -1,7 +1,9 @@
 import {themesSortedByLevel} from "./themes.js";
+import Point from "./Point.js";
 
 /**
- * @todo
+ * Определяет тип ячейки на поле
+ *
  * @param index - индекс поля
  * @param boardSize - размер квадратного поля (в длину или ширину)
  * @returns строка - тип ячейки на поле:
@@ -48,61 +50,117 @@ export function calcTileType(index, boardSize) {
   return type;
 }
 
+/**
+ * Определяет степень уровня здоровья
+ * @param health жизнь число
+ * @returns {string} степень уровня здоровья
+ */
 export function calcHealthLevel(health) {
   if (health < 15) {
     return 'critical';
   }
-
   if (health < 50) {
     return 'normal';
   }
-
   return 'high';
 }
 
+/**
+ * Функция tagged template. Формирует текст для всплывающей подсказки.
+ *
+ * @param strings строки шаблона
+ * @param level уровень число
+ * @param attack атака число
+ * @param defence защита число
+ * @param health жизнь число
+ * @returns {string} текст
+ */
 export function tooltip(strings, level, attack, defence, health) {
   return `\u{1F396}${level} \u{2694}${attack} \u{1F6E1}${defence} \u{2764}${health}`;
 }
 
+/**
+ * Определяет, входит ли персонаж, переданный в первом аргументе, в список типов персонажей, переданный во втором аргументе
+ *
+ * @param character персонаж
+ * @param types список типов персонажей
+ * @returns {boolean} true - если да, входит; false - если нет, не входит;
+ */
 export function isCharacterOneOfType(character, types) {
   return !!types.find(type => character instanceof type);
 }
 
+/**
+ * Определяет, может ли быть выполнен данный шаг step
+ * @param step объект шаг Step
+ * @returns {boolean} true - если да, может; false - если нет, не может;
+ */
 export function canStep(step) {
-  const selectedPos = indexToXY(step.position);
-  const opponentPos = indexToXY(step.positionedCharacter.position);
-  if (selectedPos.x === opponentPos.x) {
-    return Math.abs(selectedPos.y - opponentPos.y) <= step.positionedCharacter.character.stepDistance;
-  } else if (selectedPos.y === opponentPos.y) {
-    return Math.abs(selectedPos.x - opponentPos.x) <= step.positionedCharacter.character.stepDistance;
-  } else if (Math.abs(selectedPos.x - opponentPos.x) === Math.abs(selectedPos.y - opponentPos.y)) {
-    return Math.abs(selectedPos.x - opponentPos.x) <= step.positionedCharacter.character.stepDistance;
+  const toPoint = indexToXY(step.position);
+  const fromPoint = indexToXY(step.positionedCharacter.position);
+  if (toPoint.x === fromPoint.x) {
+    return Math.abs(toPoint.y - fromPoint.y) <= step.positionedCharacter.character.stepDistance;
+  } else if (toPoint.y === fromPoint.y) {
+    return Math.abs(toPoint.x - fromPoint.x) <= step.positionedCharacter.character.stepDistance;
+  } else if (Math.abs(toPoint.x - fromPoint.x) === Math.abs(toPoint.y - fromPoint.y)) {
+    return Math.abs(toPoint.x - fromPoint.x) <= step.positionedCharacter.character.stepDistance;
   } else {
     return false;
   }
 }
 
+/**
+ * Конвертировать индекс ячейки в точку xy
+ *
+ * @param index индекс ячейки
+ * @returns {Point} точка xy
+ */
 export function indexToXY(index) {
   const y = Math.floor(index / 8);
   const x = index - 8 * y;
-  return {x: x, y: y};
+  return new Point(x, y);
 }
 
+/**
+ * Конвертировать точку xy в индекс ячейки
+ *
+ * @param point точка xy
+ * @returns {*} индекс ячейки
+ */
 export function xyToIndex(point) {
   return point.x + 8*point.y;
 }
 
+/**
+ * Получить следующую тему игры относительно текущей темы, переданной в аргументе метода
+ *
+ * @param currentTheme текущая тема игры
+ * @returns {string} следующая тема игры
+ */
 export function nextTheme(currentTheme) {
   const array = themesSortedByLevel;
   const nextIndex = Math.max(0, array.indexOf(currentTheme) + 1) % array.length;
   return array[nextIndex];
 }
 
+/**
+ * Определяет, является ли последней текущая тема игры, переданная в аргументе метода
+ *
+ * @param currentTheme текущая тема
+ * @returns {boolean} true - если да, последняя; false - если нет, не последняя;
+ */
 export function isLastTheme(currentTheme) {
   const array = themesSortedByLevel;
   return currentTheme === array[array.length - 1];
 }
 
+/**
+ * Создать текст заголовка результата игры
+ *
+ * @param player1Score кол-во очков первого игрока
+ * @param player2Score кол-во очков второго игрока
+ * @returns {string} текст заголовка результата игры
+ */
 export function createResultGameText(player1Score, player2Score) {
   if (player1Score === player2Score) {
     return `Ничья! Счёт ${player1Score} : ${player2Score}`;
