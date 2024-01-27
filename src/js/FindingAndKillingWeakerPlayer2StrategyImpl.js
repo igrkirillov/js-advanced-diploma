@@ -1,8 +1,8 @@
 import Player2Strategy from "./Player2Strategy.js";
-import {indexToXY, isCharacterOneOfType, xyToIndex} from "./utils.js";
+import {canAttack, indexToXY, isCharacterOneOfType, xyToIndex} from "./utils.js";
 import Step from "./Step.js";
 
-export default class FindAndKillWeakerPlayer2StrategyImpl extends Player2Strategy {
+export default class FindingAndKillingWeakerPlayer2StrategyImpl extends Player2Strategy {
   constructor(player2Types, player1Types) {
     super(player2Types);
     this.player1Types = player1Types;
@@ -10,12 +10,22 @@ export default class FindAndKillWeakerPlayer2StrategyImpl extends Player2Strateg
 
   getStep(positionedCharacters) {
     const positionedCharacters2 = positionedCharacters.filter(el => isCharacterOneOfType(el.character, this.player2Types));
+    // самый слабый персонаж игрока1
     const weakerPositionedCharacter1 = positionedCharacters
       .filter(el => isCharacterOneOfType(el.character, this.player1Types))
       .sort((el1, el2) => el1.character.health - el2.character.health)[0];
+    // наиболее близкий к этому персонажу персонаж игрока2
     const closestPositionedCharacter2 = this.findClosestPositionedCharacter(weakerPositionedCharacter1, positionedCharacters2);
-    const closestStepPosition = this.findClosestStepIndex(weakerPositionedCharacter1, closestPositionedCharacter2);
-    const step = new Step(closestPositionedCharacter2, closestStepPosition);
+    let step;
+    // если игрок2 может сразу ударить по самому слабому персонажу игрока1, то создаём ход-удар по нему
+    // иначе делаем ход
+    if (canAttack(new Step(closestPositionedCharacter2, weakerPositionedCharacter1.position))) {
+      step = new Step(closestPositionedCharacter2, weakerPositionedCharacter1.position);
+    } else {
+      // наиболее близкая доступная для хода позиция
+      const closestStepPosition = this.findClosestStepIndex(weakerPositionedCharacter1, closestPositionedCharacter2);
+      step = new Step(closestPositionedCharacter2, closestStepPosition);
+    }
     console.log(step.toString());
     return step;
   }
@@ -33,10 +43,23 @@ export default class FindAndKillWeakerPlayer2StrategyImpl extends Player2Strateg
     })[0];
   }
 
+  /**
+   * Вычислить кратчайшее расстояние между двумя точками по гипотенузе
+   * @param point1 точка1
+   * @param point2 точка2
+   * @returns {number} расстояние в number
+   */
   calcClosestDistance(point1, point2) {
     return Math.sqrt(Math.pow(Math.abs(point1.x - point2.x), 2) + Math.pow(Math.abs(point1.y - point2.y), 2));
   }
 
+  /**
+   * Найти наиболее близкую ячейку к персонажу closestPositionedCharacter, к которой можно ходить
+   *
+   * @param targetPositionedCharacter персонаж, который ходит
+   * @param closestPositionedCharacter персонаж, к которому нужно ходить
+   * @returns {*} номер ячейки (position)
+   */
   findClosestStepIndex(targetPositionedCharacter, closestPositionedCharacter) {
     const pt = indexToXY(targetPositionedCharacter.position);
     let closestPoint = null;
@@ -47,7 +70,9 @@ export default class FindAndKillWeakerPlayer2StrategyImpl extends Player2Strateg
           const p = indexToXY(closestPositionedCharacter.position);
           const newp = {x: p.x + step * dx, y: p.y + step * dy};
           const distance = this.calcClosestDistance(pt, newp);
-          if (distance < lastDistance) {
+          // новая дистанция не должна быть равна 0, потому что персонаж не может ходить на другого игрока,
+          // в этом случае он должен атаковать, а не ходить
+          if (distance !== 0 && distance < lastDistance) {
             lastDistance = distance;
             closestPoint = newp;
           }

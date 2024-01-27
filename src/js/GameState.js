@@ -10,7 +10,7 @@ export default class GameState {
     // данные, меняющиеся runtime
     this.positionedCharacters = [];
     this.selectedPositionedCharacter = null;
-    this.underAttackPositionedCharacter = null;
+    this.highlightedPosition = null;
     this.currentTheme = null;
     this.gameFinishedFlag = false;
 

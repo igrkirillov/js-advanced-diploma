@@ -1,11 +1,19 @@
 import themes from "./themes.js";
 import {generateTeam} from "./generators.js";
 import PositionedCharacter from "./PositionedCharacter.js";
-import {canStep, createResultGameText, isCharacterOneOfType, isLastTheme, nextTheme, tooltip} from "./utils.js";
+import {
+  canAttack,
+  canStep,
+  createResultGameText, indexToXY,
+  isCharacterOneOfType,
+  isLastTheme,
+  nextTheme,
+  tooltip
+} from "./utils.js";
 import GameState from "./GameState.js";
 import GamePlay from "./GamePlay.js";
 import cursors from "./cursors.js";
-import FindAndKillWeakerPlayer2StrategyImpl from "./FindAndKillWeakerPlayer2StrategyImpl.js";
+import FindingAndKillingWeakerPlayer2StrategyImpl from "./FindingAndKillingWeakerPlayer2StrategyImpl.js";
 import StepResult from "./StepResult.js";
 import players from "./players.js";
 import Step from "./Step.js";
@@ -15,7 +23,7 @@ export default class GameController {
     this.gamePlay = gamePlay;
     this.stateService = stateService;
     this.gameState = new GameState();
-    this.player2Strategy = new FindAndKillWeakerPlayer2StrategyImpl(this.gameState.player2Types, this.gameState.player1Types);
+    this.player2Strategy = new FindingAndKillingWeakerPlayer2StrategyImpl(this.gameState.player2Types, this.gameState.player1Types);
   }
 
   init() {
@@ -177,7 +185,7 @@ export default class GameController {
   async doStep(playerName, step) {
     let stepResult;
     const target = this.findCharacter(step.position);
-    if (target && canStep(step)) {
+    if (target && canAttack(step)) {
       const attacker = step.positionedCharacter.character;
       if (attacker !== target) {
         const damage = Math.max(attacker.attack - target.defence, attacker.attack * 0.1);
@@ -206,7 +214,7 @@ export default class GameController {
       this.gamePlay.deselectCell(step.positionedCharacter.position);
       stepResult = new StepResult(playerName, true);
     } else {
-      GamePlay.showError(`${playerName}, нельзя ходить ${step.positionedCharacter.character.constructor.name} на ячейку ${step.position}!`);
+      GamePlay.showError(`${playerName}, нельзя ходить ${step.positionedCharacter.character.constructor.name} на ячейку ${indexToXY(step.position).toDebugText()}!`);
       stepResult = new StepResult(playerName, false);
     }
     return stepResult;
@@ -254,10 +262,10 @@ export default class GameController {
     if (this.findCharacter(index)) {
       this.gamePlay.hideCellTooltip(index);
     }
-    if (this.gameState.underAttackPositionedCharacter
-      && this.gameState.underAttackPositionedCharacter.position === index) {
-      this.gamePlay.deselectCell(this.gameState.underAttackPositionedCharacter.position);
-      this.gameState.underAttackPositionedCharacter = null;
+    if (this.gameState.highlightedPosition
+      && this.gameState.highlightedPosition === index) {
+      this.gamePlay.deselectCell(this.gameState.highlightedPosition);
+      this.gameState.highlightedPosition = null;
     }
   }
 
@@ -275,11 +283,11 @@ export default class GameController {
       if (isCharacterOneOfType(character, this.gameState.player1Types)) {
         // если наведён на свой персонаж
         this.gamePlay.setCursor(cursors.pointer);
-      } else if (canStep(new Step(selectedPositionedCharacter, index))){
+      } else if (canAttack(new Step(selectedPositionedCharacter, index))){
         // если наведён на персонаж противника и его можно атаковать
         this.gamePlay.setCursor(cursors.crosshair);
         this.gamePlay.selectCell(index, "red")
-        this.gameState.underAttackPositionedCharacter = new PositionedCharacter(character, index);
+        this.gameState.highlightedPosition = index;
       } else {
         // если наведён на персонаж противника и его нельзя атаковать
         this.gamePlay.setCursor(cursors.notallowed);
@@ -287,6 +295,8 @@ export default class GameController {
     } else {
       if (canStep(new Step(selectedPositionedCharacter, index))) {
         this.gamePlay.setCursor(cursors.pointer);
+        this.gamePlay.selectCell(index, "green")
+        this.gameState.highlightedPosition = index;
       } else {
         this.gamePlay.setCursor(cursors.notallowed);
       }

@@ -91,20 +91,34 @@ export function isCharacterOneOfType(character, types) {
 }
 
 /**
- * Определяет, может ли быть выполнен данный шаг step
+ * Определяет, может ли быть выполнен ход на шаг step
  *
  * @param step объект шаг Step
  * @returns {boolean} true - если да, может; false - если нет, не может;
  */
 export function canStep(step) {
+  return canAction(step, step.positionedCharacter.character.stepDistance);
+}
+
+/**
+ * Определяет, может ли быть выполнена атака на шаг step
+ *
+ * @param step объект шаг Step
+ * @returns {boolean} true - если да, может; false - если нет, не может;
+ */
+export function canAttack(step) {
+  return canAction(step, step.positionedCharacter.character.attackDistance);
+}
+
+function canAction(step, distance) {
   const toPoint = indexToXY(step.position);
   const fromPoint = indexToXY(step.positionedCharacter.position);
   if (toPoint.x === fromPoint.x) {
-    return Math.abs(toPoint.y - fromPoint.y) <= step.positionedCharacter.character.stepDistance;
+    return Math.abs(toPoint.y - fromPoint.y) <= distance;
   } else if (toPoint.y === fromPoint.y) {
-    return Math.abs(toPoint.x - fromPoint.x) <= step.positionedCharacter.character.stepDistance;
+    return Math.abs(toPoint.x - fromPoint.x) <= distance;
   } else if (Math.abs(toPoint.x - fromPoint.x) === Math.abs(toPoint.y - fromPoint.y)) {
-    return Math.abs(toPoint.x - fromPoint.x) <= step.positionedCharacter.character.stepDistance;
+    return Math.abs(toPoint.x - fromPoint.x) <= distance;
   } else {
     return false;
   }

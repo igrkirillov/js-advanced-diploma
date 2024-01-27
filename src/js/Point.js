@@ -3,4 +3,8 @@ export default class Point {
     this.x = x;
     this.y = y;
   }
+
+  toDebugText() {
+    return `x: ${this.x} y: ${this.y}`;
+  }
 }

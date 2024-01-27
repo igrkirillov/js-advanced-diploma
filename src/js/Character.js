@@ -20,6 +20,7 @@ export default class Character {
     this.health = 50;
     this.type = type;
     this.stepDistance = 0;
+    this.attackDistance = 0;
     if (new.target === Character) {
       throw "new Character() is forbidden";
     }
