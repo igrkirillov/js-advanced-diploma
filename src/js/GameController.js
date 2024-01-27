@@ -41,6 +41,7 @@ export default class GameController {
     this.gameState.gameFinishedFlag = false;
     this.gameState.player1Score = 0;
     this.gameState.player2Score = 0;
+    this.gameState.selectedPositionedCharacter = null;
     this.resetTheme()
     this.resetPlayersCharacters();
     this.redrawPlayingField();
@@ -116,7 +117,7 @@ export default class GameController {
       && this.gameState.selectedPositionedCharacter) {
       stepResult = await this.doStep(players.player1, new Step(this.gameState.selectedPositionedCharacter, index))
       if (stepResult && stepResult.stepDoneFlag) {
-        this.gameState.selectedPositionedCharacter = null;
+        // this.gameState.selectedPositionedCharacter = null;
       }
     } else {
       GamePlay.showError("Действие не определено!");
@@ -139,7 +140,7 @@ export default class GameController {
       this.gameState.currentTheme = nextTheme(this.gameState.currentTheme);
       this.gamePlay.drawUi(this.gameState.currentTheme);
       this.addNewPlayer2Characters();
-      this.gamePlay.redrawPositions(this.gameState.positionedCharacters);
+      this.redrawPositions();
     } else if (stepResult.roundFinishedFlag && stepResult.winnerName === players.player2) {
       GamePlay.showMessage("Game over!!!");
       this.resetGame();
@@ -155,7 +156,14 @@ export default class GameController {
 
   redrawPlayingField() {
     this.gamePlay.drawUi(this.gameState.currentTheme);
+    this.redrawPositions();
+  }
+
+  redrawPositions() {
     this.gamePlay.redrawPositions(this.gameState.positionedCharacters);
+    if (this.gameState.selectedPositionedCharacter) {
+      this.gamePlay.selectCell(this.gameState.selectedPositionedCharacter.position);
+    }
   }
 
   resetTheme() {
@@ -188,7 +196,7 @@ export default class GameController {
     if (target && canAttack(step)) {
       const attacker = step.positionedCharacter.character;
       if (attacker !== target) {
-        const damage = Math.max(attacker.attack - target.defence, attacker.attack * 0.1);
+        const damage = +Math.max(attacker.attack - target.defence, attacker.attack * 0.1).toFixed();
         target.applyDamage(damage);
         await this.gamePlay.showDamage(step.position, damage);
         this.findAndDeleteZeroHealthyCharacters();
@@ -201,7 +209,7 @@ export default class GameController {
         } else {
           stepResult = new StepResult(playerName, true, false);
         }
-        this.gamePlay.redrawPositions(this.gameState.positionedCharacters)
+        this.redrawPositions();
       } else {
         stepResult = new StepResult(playerName, true);
       }
@@ -210,8 +218,13 @@ export default class GameController {
         element.position === step.positionedCharacter.position
         && element.character === step.positionedCharacter.character)
         .forEach(element => element.position = step.position);
-      this.gamePlay.redrawPositions(this.gameState.positionedCharacters);
-      this.gamePlay.deselectCell(step.positionedCharacter.position);
+      this.redrawPositions();
+      if (playerName === players.player1) {
+        this.gamePlay.deselectCell(step.positionedCharacter.position);
+        this.gamePlay.selectCell(step.position);
+        this.gameState.selectedPositionedCharacter =
+          new PositionedCharacter(step.positionedCharacter.character, step.position);
+      }
       stepResult = new StepResult(playerName, true);
     } else {
       GamePlay.showError(`${playerName}, нельзя ходить ${step.positionedCharacter.character.constructor.name} на ячейку ${indexToXY(step.position).toDebugText()}!`);
@@ -230,6 +243,9 @@ export default class GameController {
     zeroHealthyPositionedCharacters.forEach(el => {
       const index =  this.gameState.positionedCharacters.indexOf(el);
       this.gameState.positionedCharacters.splice(index, 1);
+      if (this.gameState.selectedPositionedCharacter && this.gameState.selectedPositionedCharacter.position === index) {
+        this.gameState.selectedPositionedCharacter = null;
+      }
     });
   }
 
@@ -266,6 +282,9 @@ export default class GameController {
       && this.gameState.highlightedPosition === index) {
       this.gamePlay.deselectCell(this.gameState.highlightedPosition);
       this.gameState.highlightedPosition = null;
+      if (this.gameState.selectedPositionedCharacter) {
+        this.gamePlay.selectCell(this.gameState.selectedPositionedCharacter.position);
+      }
     }
   }
 
