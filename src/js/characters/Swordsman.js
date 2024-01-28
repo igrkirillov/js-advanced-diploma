@@ -1,9 +1,10 @@
 import Character from "../Character.js";
+import types from "./types.js";
 
 // мечник
 export default class Swordsman extends Character {
   constructor(level) {
-    super(1, "swordsman");
+    super(1, types.swordsman);
     this.attack = 40;
     this.defence = 10;
     this.stepDistance = 4;

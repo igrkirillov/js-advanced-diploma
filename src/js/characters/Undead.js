@@ -1,9 +1,10 @@
 import Character from "../Character.js";
+import types from "./types.js";
 
 // скелет
 export default class Undead extends Character {
   constructor(level) {
-    super(1, "undead");
+    super(1, types.undead);
     this.attack = 40;
     this.defence = 10;
     this.stepDistance = 4;

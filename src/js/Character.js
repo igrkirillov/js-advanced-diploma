@@ -1,3 +1,5 @@
+import nextId from "./ids.js";
+
 /**
  * Базовый класс, от которого наследуются классы персонажей
  * @property level - уровень персонажа, от 1 до 4
@@ -14,6 +16,7 @@
  */
 export default class Character {
   constructor(level, type = 'generic') {
+    this.id = nextId();
     this.level = level;
     this.attack = 0;
     this.defence = 0;

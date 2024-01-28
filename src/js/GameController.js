@@ -216,7 +216,7 @@ export default class GameController {
     } else if (!target && canStep(step)) {
       this.gameState.positionedCharacters.filter(element =>
         element.position === step.positionedCharacter.position
-        && element.character === step.positionedCharacter.character)
+        && element.character.id === step.positionedCharacter.character.id)
         .forEach(element => element.position = step.position);
       this.redrawPositions();
       if (playerName === players.player1) {
