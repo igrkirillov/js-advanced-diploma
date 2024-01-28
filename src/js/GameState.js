@@ -9,6 +9,7 @@ export default class GameState {
   constructor() {
     // данные, меняющиеся runtime
     this.positionedCharacters = [];
+    this.initialCharactersLocationsMap = new Map();
     this.selectedPositionedCharacter = null;
     this.highlightedPosition = null;
     this.currentTheme = null;

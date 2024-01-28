@@ -140,6 +140,7 @@ export default class GameController {
       this.gameState.currentTheme = nextTheme(this.gameState.currentTheme);
       this.gamePlay.drawUi(this.gameState.currentTheme);
       this.addNewPlayer2Characters();
+      this.relocatePlayer1CharactersToInitialPositions();
       this.redrawPositions();
     } else if (stepResult.roundFinishedFlag && stepResult.winnerName === players.player2) {
       GamePlay.showMessage("Game over!!!");
@@ -151,6 +152,16 @@ export default class GameController {
           await this.processStepResult(stepResult2);
         }
       }
+    }
+  }
+
+  relocatePlayer1CharactersToInitialPositions() {
+    this.gameState.positionedCharacters
+      .filter(el => isCharacterOneOfType(el.character, this.gameState.player1Types))
+      .forEach(el => el.position = this.gameState.initialCharactersLocationsMap.get(el.character.id));
+    if (this.gameState.selectedPositionedCharacter) {
+      this.gameState.selectedPositionedCharacter.position =
+        this.gameState.initialCharactersLocationsMap.get(this.gameState.selectedPositionedCharacter.character.id);
     }
   }
 
@@ -174,6 +185,14 @@ export default class GameController {
     this.gameState.positionedCharacters = [];
     this.addNewPlayer1Characters();
     this.addNewPlayer2Characters();
+    this.refillInitialCharactersLocationsMap();
+  }
+
+  refillInitialCharactersLocationsMap() {
+    this.gameState.initialCharactersLocationsMap.clear();
+    this.gameState.positionedCharacters.forEach(el => {
+      this.gameState.initialCharactersLocationsMap.set(el.character.id, el.position);
+    })
   }
 
   addNewPlayer1Characters() {

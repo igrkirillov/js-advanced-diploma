@@ -39,6 +39,12 @@ export default class GameStateService {
     }
   }
 
+  /**
+   * Мэппировать сериализованный персонаж в runtime-персонаж. Пересоздать его, чтобы восстановить цепочку прототипов.
+   *
+   * @param serializedPositionCharacter сериализованный объект
+   * @returns {PositionedCharacter} восстановленный объект {@link PositionedCharacter}
+   */
   mapSerializedPositionCharacterToPositionCharacter(serializedPositionCharacter) {
     const sourceCharacter = serializedPositionCharacter.character;
     let targetCharacter;

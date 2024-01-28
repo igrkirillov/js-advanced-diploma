@@ -3,6 +3,9 @@ import {canAttack, indexToXY, isCharacterOneOfType, xyToIndex} from "./utils.js"
 import Step from "./Step.js";
 import Point from "./Point.js";
 
+/**
+ * Стратегия компьютера "Поиск и Убиение самого слабого персонажа противника"
+ */
 export default class FindingAndKillingWeakerPlayer2StrategyImpl extends Player2Strategy {
   constructor(player2Types, player1Types) {
     super(player2Types);
@@ -60,6 +63,7 @@ export default class FindingAndKillingWeakerPlayer2StrategyImpl extends Player2S
    *
    * @param targetPositionedCharacter персонаж, который ходит
    * @param closestPositionedCharacter персонаж, к которому нужно ходить
+   * @param allPositionedCharacters все спозиционнированные персонажи игры
    * @returns {*} номер ячейки (position)
    */
   findClosestStepIndex(targetPositionedCharacter, closestPositionedCharacter, allPositionedCharacters) {
