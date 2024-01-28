@@ -1,6 +1,5 @@
-module.exports = async () => {
-  return {
-    verbose: true,
-    transform: {}
-  };
-};
+const config = {
+  verbose: true
+}
+
+module.exports = config;

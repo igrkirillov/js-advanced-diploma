@@ -16,13 +16,12 @@
     "preshow:dist": "npm run build",
     "show:dist": "live-server dist"
   },
-  "author": "Rysaev Damir <freepad@ya.ru>",
+  "author": "Igor Kirillov <igr.kirillov@gmail.com>",
   "license": "MIT",
   "devDependencies": {
     "@babel/cli": "^7.23.0",
     "@babel/core": "^7.23.0",
     "@babel/preset-env": "^7.22.20",
-    "@jest/globals": "^29.7.0",
     "@types/jest": "^29.5.5",
     "babel-jest": "^29.7.0",
     "babel-loader": "^9.1.3",

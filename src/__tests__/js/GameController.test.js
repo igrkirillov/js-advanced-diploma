@@ -1,27 +1,30 @@
-import {jest} from '@jest/globals';
 import GameController from "../../js/GameController.js";
 import GamePlay from "../../js/GamePlay.js";
 import GameStateService from "../../js/GameStateService.js";
 jest.mock("../../js/GamePlay.js");
 jest.mock("../../js/GameStateService.js");
 
+
 beforeEach(() => {
-  jest.resetAllMocks();
+  GamePlay.mockClear();
+  GameStateService.mockClear();
 })
 
 describe("GameController module", () => {
   test ("loadGame вызывает load объекта stateService " +
-    "И drawUi объекта gamePlay " +
-    "И redrawPositions объекта gamePlay", () => {
-    const gamePlay = new GamePlay();
-    const stateService = new GameStateService();
-    const controller = new GameController(gamePlay, stateService);
+    "и drawUi объекта gamePlay " +
+    "и redrawPositions объекта gamePlay", () => {
+
+    const controller = new GameController(new GamePlay(), new GameStateService());
 
     // главный вызов
     controller.loadGame();
 
-    expect(stateService.load).toHaveBeenCalled();
-    expect(gamePlay.drawUi).toHaveBeenCalled();
-    expect(gamePlay.redrawPositions).toHaveBeenCalled();
+    const mockGamePlay = GamePlay.mock.instances[0];
+    const mockStateService = GameStateService.mock.instances[0];
+
+    expect(mockStateService.load).toHaveBeenCalled();
+    expect(mockGamePlay.drawUi).toHaveBeenCalled();
+    expect(mockGamePlay.redrawPositions).toHaveBeenCalled();
   });
 });
