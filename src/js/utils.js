@@ -185,3 +185,26 @@ export function createResultGameText(player1Score, player2Score) {
     return `Победил игрок №2 со счётом ${player2Score} : ${player1Score}`;
   }
 }
+
+/**
+ * Получить массив персонажей игрока из массива позиционированных персонажей
+ *
+ * @param positionedCharacters массива позиционированных персонажей
+ * @param playerTypes типы персонажей игрока (массив)
+ * @returns {*} массив персонажей
+ */
+export function getPlayerCharactersFromPositionedCharacters(positionedCharacters, playerTypes) {
+  return positionedCharacters.filter(el => isCharacterOneOfType(el.character, playerTypes));
+}
+
+/**
+ * Попытаться релоцировать персонаж в начальную его локацию
+ *
+ * @param positionedCharacter позиционированный персонаж
+ * @param initialPositionsMap мапа с начальными локациями персонажей: ключ - это id персонажа, значение - позиция (индекс)
+ */
+export function tryRelocatePositionCharacterToInitialPosition(positionedCharacter, initialPositionsMap) {
+  if (initialPositionsMap.has(positionedCharacter.character.id)) {
+    positionedCharacter.position = initialPositionsMap.get(positionedCharacter.character.id);
+  }
+}

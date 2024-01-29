@@ -22,7 +22,7 @@ export default class GameState {
     // данные статичные, не меняющиеся во время игры
     this.player1Types = [Bowman, Swordsman, Magician];
     this.player2Types = [Daemon, Undead, Vampire];
-    this.player2CharactersQuantity = 1; // кол-во персонажей у 2-го игрока
+    this.playerCharactersQuantity = 2; // кол-во персонажей у игроков
   }
   static from(object) {
     // TODO: create object

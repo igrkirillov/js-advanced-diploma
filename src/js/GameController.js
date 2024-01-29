@@ -4,11 +4,11 @@ import PositionedCharacter from "./PositionedCharacter.js";
 import {
   canAttack,
   canStep,
-  createResultGameText, indexToXY,
+  createResultGameText, getPlayerCharactersFromPositionedCharacters, indexToXY,
   isCharacterOneOfType,
   isLastTheme,
   nextTheme,
-  tooltip
+  tooltip, tryRelocatePositionCharacterToInitialPosition
 } from "./utils.js";
 import GameState from "./GameState.js";
 import GamePlay from "./GamePlay.js";
@@ -140,6 +140,7 @@ export default class GameController {
       this.gameState.currentTheme = nextTheme(this.gameState.currentTheme);
       this.gamePlay.drawUi(this.gameState.currentTheme);
       this.addNewPlayer2Characters();
+      this.addNewPlayer1Characters();
       this.relocatePlayer1CharactersToInitialPositions();
       this.redrawPositions();
     } else if (stepResult.roundFinishedFlag && stepResult.winnerName === players.player2) {
@@ -158,10 +159,10 @@ export default class GameController {
   relocatePlayer1CharactersToInitialPositions() {
     this.gameState.positionedCharacters
       .filter(el => isCharacterOneOfType(el.character, this.gameState.player1Types))
-      .forEach(el => el.position = this.gameState.initialCharactersLocationsMap.get(el.character.id));
+      .forEach(el => tryRelocatePositionCharacterToInitialPosition(el, this.gameState.initialCharactersLocationsMap));
     if (this.gameState.selectedPositionedCharacter) {
-      this.gameState.selectedPositionedCharacter.position =
-        this.gameState.initialCharactersLocationsMap.get(this.gameState.selectedPositionedCharacter.character.id);
+      tryRelocatePositionCharacterToInitialPosition(this.gameState.selectedPositionedCharacter,
+        this.gameState.initialCharactersLocationsMap)
     }
   }
 
@@ -196,17 +197,25 @@ export default class GameController {
   }
 
   addNewPlayer1Characters() {
-    const team1 = generateTeam(this.gameState.player1Types, 3, 4);
-    this.gameState.positionedCharacters = [
-      ...this.gameState.positionedCharacters,
-      ...this.locateTeamPlayers(team1, this.getNextPlayer1Position)];
+    const deadCount = this.gameState.playerCharactersQuantity - getPlayerCharactersFromPositionedCharacters(
+      this.gameState.positionedCharacters, this.gameState.player1Types).length;
+    if (deadCount > 0) {
+      const team1 = generateTeam(this.gameState.player1Types, 3, deadCount);
+      this.gameState.positionedCharacters = [
+        ...this.gameState.positionedCharacters,
+        ...this.locateTeamPlayers(team1, this.getNextPlayer1Position)];
+    }
   }
 
   addNewPlayer2Characters() {
-    const team2 = generateTeam(this.gameState.player2Types, 3, this.gameState.player2CharactersQuantity);
-    this.gameState.positionedCharacters = [
-      ...this.gameState.positionedCharacters,
-      ...this.locateTeamPlayers(team2, this.getNextPlayer2Position)];
+    const deadCount = this.gameState.playerCharactersQuantity - getPlayerCharactersFromPositionedCharacters(
+      this.gameState.positionedCharacters, this.gameState.player2Types).length;
+    if (deadCount > 0) {
+      const team2 = generateTeam(this.gameState.player2Types, 3, deadCount);
+      this.gameState.positionedCharacters = [
+        ...this.gameState.positionedCharacters,
+        ...this.locateTeamPlayers(team2, this.getNextPlayer2Position)];
+    }
   }
 
   async doStep(playerName, step) {
@@ -264,6 +273,7 @@ export default class GameController {
       this.gameState.positionedCharacters.splice(index, 1);
       if (this.gameState.selectedPositionedCharacter && this.gameState.selectedPositionedCharacter.position === index) {
         this.gameState.selectedPositionedCharacter = null;
+        this.gamePlay.deselectCell(index);
       }
     });
   }
