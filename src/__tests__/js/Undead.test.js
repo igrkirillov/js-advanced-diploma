@@ -6,7 +6,8 @@ describe('Undead module', () => {
       level: 1,
       attack: 40,
       defence: 10,
-      stepDistance: 4
+      stepDistance: 4,
+      attackDistance: 1
     });
   });
 });

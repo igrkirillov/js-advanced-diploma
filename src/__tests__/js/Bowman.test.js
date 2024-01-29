@@ -6,7 +6,8 @@ describe('Bowman module', () => {
       level: 1,
       attack: 25,
       defence: 25,
-      stepDistance: 4
+      stepDistance: 2,
+      attackDistance: 2
     });
   });
 });

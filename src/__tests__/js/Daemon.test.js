@@ -6,7 +6,8 @@ describe('Daemon module', () => {
       level: 1,
       attack: 10,
       defence: 10,
-      stepDistance: 1
+      stepDistance: 1,
+      attackDistance: 4
     });
   });
 });
