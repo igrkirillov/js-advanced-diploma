@@ -204,6 +204,7 @@ export default class GameController {
       this.gameState.positionedCharacters = [
         ...this.gameState.positionedCharacters,
         ...this.locateTeamPlayers(team1, this.getNextPlayer1Position)];
+      this.refillInitialCharactersLocationsMap();
     }
   }
 
@@ -215,6 +216,7 @@ export default class GameController {
       this.gameState.positionedCharacters = [
         ...this.gameState.positionedCharacters,
         ...this.locateTeamPlayers(team2, this.getNextPlayer2Position)];
+      this.refillInitialCharactersLocationsMap();
     }
   }
 
