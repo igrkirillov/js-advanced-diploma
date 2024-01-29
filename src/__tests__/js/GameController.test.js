@@ -30,11 +30,11 @@ describe("GameController module", () => {
       };
     });
 
-    const controller = new GameController(new GamePlay(), new GameStateService());
+    const subject = new GameController(new GamePlay(), new GameStateService());
     const mockGamePlay = GamePlay.mock.instances[0];
 
     // главный вызов
-    controller.loadGame();
+    subject.loadGame();
 
     expect(mockGamePlay.drawUi).toHaveBeenCalledWith(currentThemeOfGameState);
     expect(mockGamePlay.redrawPositions).toHaveBeenCalled();
@@ -49,10 +49,10 @@ describe("GameController module", () => {
       };
     });
 
-    const controller = new GameController(new GamePlay(), new GameStateService());
+    const subject = new GameController(new GamePlay(), new GameStateService());
 
     // главный вызов
-    controller.loadGame();
+    subject.loadGame();
 
     expect(GamePlay.showError).toHaveBeenCalledWith(
       `Упс! Не удалось загрузить игру из памяти! Причина: ${errorMessage}`);
