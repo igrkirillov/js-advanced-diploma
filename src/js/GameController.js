@@ -257,7 +257,7 @@ export default class GameController {
       }
       stepResult = new StepResult(playerName, true);
     } else {
-      GamePlay.showError(`${playerName}, нельзя ходить ${step.positionedCharacter.character.constructor.name} на ячейку ${indexToXY(step.position).toDebugText()}!`);
+      GamePlay.showError(`${playerName}, нельзя ходить персонажем ${step.positionedCharacter.character.type} на ячейку ${indexToXY(step.position).toDebugText()}!`);
       stepResult = new StepResult(playerName, false);
     }
     return stepResult;
